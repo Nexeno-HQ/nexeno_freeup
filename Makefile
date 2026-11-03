@@ -34,8 +34,9 @@ help:
 install-deps: install-deps-js
 	composer install
 
+# --no-scripts: the post-install script needs the dev-only composer-bin plugin, which --no-dev leaves out.
 install-deps-nodev: install-deps-js
-	composer install --no-dev
+	composer install --no-dev --no-scripts
 
 install-deps-js:
 	npm ci
