@@ -6,7 +6,7 @@
 
 All notable changes to this project are documented in this file.
 
-## 1.0.0 - 2026-10-21
+## 1.0.0 - 2026-11-03
 
 First public release, for Nextcloud 31, 32, 33, 34 and 35.
 

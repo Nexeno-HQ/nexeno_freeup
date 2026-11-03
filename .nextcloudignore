@@ -22,3 +22,8 @@
 /css/*.map
 /build/
 /Makefile
+/playwright-report/
+/test-results/
+/blob-report/
+.DS_Store
+._*

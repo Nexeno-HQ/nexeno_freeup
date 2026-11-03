@@ -8,6 +8,13 @@ cert_dir=$(HOME)/.nextcloud/certificates
 
 OCC?=php ../../occ
 
+# macOS tar adds Finder files (._*) and file attributes, which Linux servers and the code signature reject.
+ifeq ($(shell uname -s),Darwin)
+TAR = COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata --uid 0 --gid 0 --uname root --gname root
+else
+TAR = tar --owner=0 --group=0 --numeric-owner
+endif
+
 .PHONY: default help install-deps install-deps-nodev install-deps-js build build-js watch \
 	lint lint-js lint-php psalm cs-fix test-e2e appstore sign clean clean-dist
 
@@ -63,7 +70,9 @@ test-e2e:
 appstore: clean install-deps-nodev build-js
 	mkdir -p $(package_dir)
 	rsync -a --exclude-from=.nextcloudignore $(if $(wildcard .git/info/exclude),--exclude-from=.git/info/exclude) ./ $(package_dir)/
-	tar -czf $(appstore_dir)/$(app_name).tar.gz -C $(appstore_dir) $(app_name)
+	find $(package_dir) -type d -exec chmod 755 {} +
+	find $(package_dir) -type f -exec chmod 644 {} +
+	$(TAR) -czf $(appstore_dir)/$(app_name).tar.gz -C $(appstore_dir) $(app_name)
 	@echo "Package: $(appstore_dir)/$(app_name).tar.gz"
 
 sign:
@@ -71,7 +80,7 @@ sign:
 		--privateKey=$(cert_dir)/$(app_name).key \
 		--certificate=$(cert_dir)/$(app_name).crt \
 		--path=$(package_dir)
-	tar -czf $(appstore_dir)/$(app_name).tar.gz -C $(appstore_dir) $(app_name)
+	$(TAR) -czf $(appstore_dir)/$(app_name).tar.gz -C $(appstore_dir) $(app_name)
 	@echo "App Store signature:"
 	@openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(appstore_dir)/$(app_name).tar.gz | openssl base64
 
